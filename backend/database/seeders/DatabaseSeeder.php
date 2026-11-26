@@ -2,24 +2,28 @@
 
 namespace Database\Seeders;
 
+use App\Models\ItemCategory;
+use App\Models\Location;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        foreach (['Dompet', 'HP', 'Kunci', 'Tas', 'Dokumen', 'Elektronik', 'Pakaian', 'Lainnya'] as $name) {
+        ItemCategory::firstOrCreate(['name' => $name]);
+        }
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        foreach (['Perpustakaan', 'Kantin', 'Masjid', 'Gedung Kuliah', 'Parkiran', 'Lab Komputer'] as $name) {
+        Location::firstOrCreate(['name' => $name]);
+        }
+
+        User::firstOrCreate(['email' => 'admin@lostfound.test'], [
+        'name' => 'Admin LostFound',
+        'password' => Hash::make('password'),
+        'role' => 'admin',
         ]);
     }
 }
