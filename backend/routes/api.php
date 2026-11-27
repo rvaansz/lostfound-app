@@ -22,4 +22,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/items/{item}', [ItemController::class, 'update']);
     Route::delete('/items/{item}', [ItemController::class, 'destroy']);
     Route::post('/items/{item}/claims', [ClaimController::class, 'store']);
+    Route::get('/items/{item}/claims', [ClaimController::class, 'index']);
+    Route::get('/claims/{claim}', [ClaimController::class, 'show']);
+    Route::post('/claims/{claim}/approve', [ClaimController::class, 'approve']);
+    Route::post('/claims/{claim}/reject', [ClaimController::class, 'reject']);
 });
