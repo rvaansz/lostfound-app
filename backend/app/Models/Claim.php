@@ -26,4 +26,9 @@ class Claim extends Model
     {
     return $this->belongsTo(User::class, 'verified_by');
     }  
+    
+    protected function casts(): array
+    {
+    return ['verified_at' => 'datetime'];
+    }
 }
