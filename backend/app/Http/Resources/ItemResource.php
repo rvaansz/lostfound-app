@@ -23,6 +23,7 @@ class ItemResource extends JsonResource
             'event_date'  => $this->event_date,
             'event_time'  => $this->event_time,
             'status'      => $this->status,
+            'pending_claims_count' => $this->whenCounted('pending_claims'),
             'category'    => $this->whenLoaded('category', fn () => [
                 'id' => $this->category->id, 'name' => $this->category->name,
             ]),

@@ -131,4 +131,15 @@ private function ensureCanModify(Request $request, Item $item): void
         'Laporan yang sedang diverifikasi atau sudah selesai tidak bisa diubah'
     );
 }
+
+public function mine(Request $request): AnonymousResourceCollection
+{
+    return ItemResource::collection(
+        $request->user()->items()
+            ->with(['category', 'location'])
+            ->withCount(['claims as pending_claims_count' => fn ($q) => $q->where('status', 'pending')])
+            ->latest()
+            ->paginate(10)
+    );
+}
 }

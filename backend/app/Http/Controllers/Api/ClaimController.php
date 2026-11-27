@@ -176,4 +176,11 @@ class ClaimController extends Controller
             'Klaim ini sudah diproses'
         );
     }
+
+    public function mine(Request $request): AnonymousResourceCollection
+    {
+        return ClaimResource::collection(
+            $request->user()->claims()->with(self::RELATIONS)->latest()->paginate(10)
+        );
+    }
 }
