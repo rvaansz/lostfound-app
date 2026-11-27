@@ -7,6 +7,8 @@ use App\Http\Resources\ItemResource;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
@@ -47,4 +49,86 @@ class ItemController extends Controller
     {
         return new ItemResource($item->load(['category', 'location', 'reporter:id,name']));
     }
+
+    public function store(Request $request): JsonResponse
+{
+    $data = $request->validate([
+        'type'        => ['required', 'in:lost,found'],
+        'name'        => ['required', 'string', 'max:255'],
+        'description' => ['required', 'string'],
+        'category_id' => ['required', 'exists:item_categories,id'],
+        'location_id' => ['required', 'exists:locations,id'],
+        'event_date'  => ['required', 'date', 'before_or_equal:today'],
+        'event_time'  => ['nullable', 'date_format:H:i'],
+        'photo'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+    ]);
+
+    if ($request->hasFile('photo')) {
+        $data['photo'] = $request->file('photo')->store('items', 'public');
+    }
+
+    $item = $request->user()->items()->create($data);
+
+    return (new ItemResource($item->load(['category', 'location', 'reporter:id,name'])))
+        ->response()
+        ->setStatusCode(201);
+}
+
+public function update(Request $request, Item $item): ItemResource
+{
+    $this->ensureCanModify($request, $item);
+
+    $data = $request->validate([
+        'name'        => ['sometimes', 'required', 'string', 'max:255'],
+        'description' => ['sometimes', 'required', 'string'],
+        'category_id' => ['sometimes', 'required', 'exists:item_categories,id'],
+        'location_id' => ['sometimes', 'required', 'exists:locations,id'],
+        'event_date'  => ['sometimes', 'required', 'date', 'before_or_equal:today'],
+        'event_time'  => ['nullable', 'date_format:H:i'],
+        'photo'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+    ]);
+
+    if ($request->hasFile('photo')) {
+        if ($item->photo) {
+            Storage::disk('public')->delete($item->photo);
+        }
+        $data['photo'] = $request->file('photo')->store('items', 'public');
+    } else {
+        unset($data['photo']);
+    }
+
+    $item->update($data);
+
+    return new ItemResource($item->load(['category', 'location', 'reporter:id,name']));
+}
+
+public function destroy(Request $request, Item $item): JsonResponse
+{
+    $this->ensureCanModify($request, $item);
+
+    if ($item->photo) {
+        Storage::disk('public')->delete($item->photo);
+    }
+
+    $item->delete();
+
+    return response()->json(['message' => 'Laporan berhasil dihapus']);
+}
+
+private function ensureCanModify(Request $request, Item $item): void
+{
+    $user = $request->user();
+
+    abort_if(
+        $item->user_id !== $user->id && $user->role !== 'admin',
+        403,
+        'Anda tidak berhak mengubah laporan ini'
+    );
+
+    abort_if(
+        $item->status !== 'open',
+        422,
+        'Laporan yang sedang diverifikasi atau sudah selesai tidak bisa diubah'
+    );
+}
 }
