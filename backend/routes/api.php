@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ItemController;
 use App\Http\Controllers\Api\MasterDataController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,4 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/categories', [MasterDataController::class, 'categories']);
     Route::get('/locations', [MasterDataController::class, 'locations']);
+
+    Route::get('/items', [ItemController::class, 'index']);
+    Route::get('/items/{item}', [ItemController::class, 'show']);
 });
