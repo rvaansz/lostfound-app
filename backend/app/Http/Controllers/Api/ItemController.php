@@ -67,7 +67,7 @@ class ItemController extends Controller
         $data['photo'] = $request->file('photo')->store('items', 'public');
     }
 
-    $item = $request->user()->items()->create($data);
+    $item = $request->user()->items()->create($data + ['status' => 'open']);
 
     return (new ItemResource($item->load(['category', 'location', 'reporter:id,name'])))
         ->response()
